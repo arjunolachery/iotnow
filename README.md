@@ -2,7 +2,6 @@
 
 iotnow - Software Stack for Next Generation IoT Devices (www.iotnow.co.in)
 
-Codes unless mentioned otherwise are written for the NodeMCU board
 
 
 ## Usage
