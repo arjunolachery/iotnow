@@ -11,8 +11,8 @@
 String wifiSsid = "iotnow"; // regular wifiSsid
 String wifiPassword = "iotnowpass"; // regular wifiPassword
 int MCUId=0; // identification of board
-int programId = 1; // current programId
-int versionId = 1; // current versionId
+// int programId = 1; // current programId
+// int versionId = 1; // current versionId
 
 void identifyBoard(){ //to identify board
 #if defined(ARDUINO_ESP8266_NODEMCU)
@@ -73,6 +73,7 @@ String readMemory(int startAddress){ //reads characters from memory at specified
 }
 
 void wifiSetup(){ // connects to wifi - will wait inifinitely if wifi network not found
+  Serial.println("Connecting to wifi...");
   String wifiSsidMem = readMemory(0); // reads the wifiSsid from memory
   String wifiPasswordMem = readMemory(100); // reads the wifiPassword from memory
   if(wifiSsidMem == "")
@@ -86,6 +87,7 @@ void wifiSetup(){ // connects to wifi - will wait inifinitely if wifi network no
      lightMode=!lightMode;
   }
   digitalWrite(LED_BUILTIN, 0);
+  Serial.println("Connected");
 }
 
 void updateToServer(){ // device gets updated or registered onto "devices" database table of server
@@ -97,7 +99,7 @@ void updateToServer(){ // device gets updated or registered onto "devices" datab
   http.end();  // Terminate the http connection
 }
 
-String programVersionCheck(){
+String programVersionCheck(int programId, int versionId){
   HTTPClient http;   // create http object 
   String dataPost = "macAddress="+WiFi.macAddress()+"&versionId="+versionId+"&programId="+programId+"&MCUId="+MCUId; // data to be sent over http link through post
   http.begin("http://iotnow.co.in/programVersionCheck.php"); // set http object to point to the link and start http connection
@@ -132,8 +134,10 @@ String wifiPasswordCheck(){ //writes the new wifiPassword to memory
   return httpResult; // return the string of http result
 } 
 
-void performOTAUpdate(){
-  String updateFileName = programVersionCheck(); //to perform ota update
+void performOTAUpdate(int programId, int versionId){
+  Serial.println("Check to perform OTA update");
+  String updateFileName = programVersionCheck(programId,versionId); //to perform ota update
+  Serial.println("Filename to update: "+updateFileName);
   if(updateFileName != "0"){
   Serial.println("yes perform");
   String serverLink="http://www.iotnow.co.in/files"; 
@@ -142,7 +146,8 @@ void performOTAUpdate(){
   }
 }
 
-void iotnow(){
+void iotnow(int programId,int versionId){
+  WiFi.mode(WIFI_STA); // mentioning current device as wifi station
   EEPROM.begin(512); // to set up flash memory 
   pinMode(LED_BUILTIN, OUTPUT);
   identifyBoard();
@@ -150,5 +155,5 @@ void iotnow(){
   wifiSsidCheck();
   wifiPasswordCheck();
   updateToServer();
-  performOTAUpdate();
+  performOTAUpdate(programId,versionId);
 }
